@@ -1,0 +1,16 @@
+{
+	"main": "index.html",
+	"logo": "logo.png",
+	"preload": "preload.js",
+	"platform": ["win32", "darwin", "linux"],
+	"development": {
+		"main":"http://127.0.0.1:8080"
+	},
+	"features": [
+		{
+			"code": "mdeeplx",
+			"explain": "不用国外银行卡的deeplx服务",
+			"cmds":["deepl", "mdeepl", "dx"]
+		}
+	]
+}
