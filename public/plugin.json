@@ -10,7 +10,14 @@
 		{
 			"code": "mdeeplx",
 			"explain": "不用国外银行卡的deeplx服务",
-			"cmds":["deepl", "mdeepl", "dx"]
+			"cmds":["deepl", "mdeepl", "dx",
+				{
+					"type": "over",
+					"label": "dx翻译",
+					"exclude": "/xxx/i",
+					"minLength": 1,
+					"maxLength": 10000
+				}]
 		}
 	]
 }
