@@ -26,7 +26,7 @@
       <el-form-item :rules="apiAddressRules" prop="api_address" :label="$t('apiAddress')">
         <el-input v-model="settings.api_address" :placeholder="$t('enterApiAddress')"></el-input>
         <a href="javascript:void(0)"
-           @click="openBrowserLink('https://obs-ake1-com.netlify.app/编程/如何创建deeplx代理服务器/')"
+           @click="openBrowserLink('https://obs.ake1.com/编程/如何创建deeplx代理服务器/')"
            target="_blank">查看API部署教程</a>
       </el-form-item>
 
