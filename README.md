@@ -1,24 +1,59 @@
-# m-deeplx-vue
+# dx翻译
 
-## 项目设置
-````
-npm 安装
-````
+别名dx翻译,m-deeplx,支持各种自己部署服务的utools翻译插件,适合有点运维基础的人员使用
 
-### 编译和热重载以进行开发
-````
-npm 运行服务
-````
+## 功能特点
 
-### 编译并缩小以用于生产
-````
-npm 运行构建
-````
+- 私有deeplx部署翻译
+- 私有chatgpt部署翻译(待支持)
+- 私有谷歌部署翻译(待支持)
+- 私有Amazon部署翻译(待支持)
+- 双语菜单支持
 
-### Lints 和修复文件
-````
-npm 运行 lint
-````
+## 安装
 
-### 自定义配置
-请参阅[配置参考](https://cli.vuejs.org/config/)。
+1. utools插件市场搜索dx翻译
+
+## 使用方法
+
+1. 加入设置
+2. 设置api地址
+
+## 技术栈
+
+vue,vuex,route,element-ui,es6,preload.js
+
+## 目录结构
+
+```
+m-deeplx-vue
+├── babel.config.js
+├── jsconfig.json
+├── package-lock.json
+├── package.json
+├── public
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo.png
+│   ├── plugin.json utools插件配置
+│   └── preload.js preload.js
+├── README.md
+├── src
+│   ├── App.vue
+│   ├── assets
+│   ├── components
+│   ├── main.js
+│   ├── plugins
+│   ├── router
+│   ├── store
+│   └── views
+└── vue.config.js
+```
+
+## 贡献
+
+欢迎贡献代码和提出问题。请阅读贡献指南并提交拉取请求。
+
+## 作者许可
+
+可以二次开发,但必须标明来源
