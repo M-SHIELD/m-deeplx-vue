@@ -10,6 +10,10 @@
 - 私有Amazon部署翻译(待支持)
 - 双语菜单支持
 
+## 截图
+![img_3.png](https://www.ake1.com/mkoss/2023-07-13/6e67dc21.png)
+![img_4.png](https://www.ake1.com/mkoss/2023-07-13/f7db2c8d.png)
+
 ## 安装
 
 1. utools插件市场搜索dx翻译

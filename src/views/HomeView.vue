@@ -14,7 +14,7 @@
         </el-input>
       </el-row>
       <el-row>
-        <el-col :span="3">
+        <el-col :span="5">
           <el-checkbox-button v-model="auto_detect">{{ $t('autoDetectButton') }}</el-checkbox-button>
         </el-col>
         <el-col :span="8">
@@ -31,7 +31,9 @@
           </el-form-item>
         </el-col>
         <el-col :span="3">
-          <el-button style="margin-left: 40px" type="primary" icon="el-icon-refresh" @click="swapLanguages"></el-button>
+<!--          <el-form-item >-->
+            <el-button style="margin-left: 40px" circle type="primary" icon="el-icon-refresh" @click="swapLanguages"></el-button>
+<!--          </el-form-item>-->
         </el-col>
         <el-col :span="8">
           <el-form-item :label="$t('targetLanguage') ">
