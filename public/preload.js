@@ -1,3 +1,16 @@
+
+/**
+ * 打开默认浏览器加载指定连接
+ * @param url 链接
+ * @returns {Promise<void>}
+ */
+window.oepnUrl = async function (url) {
+
+    // eslint-disable-next-line no-undef
+    utools.shellOpenExternal(url)
+}
+
+
 /**
  * 保存键值对配置
  * @param k
