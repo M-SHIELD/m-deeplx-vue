@@ -12,8 +12,8 @@
   },
   "features": [
     {
-      "code": "mdeeplx",
-      "explain": "不用国外银行卡的deeplx服务",
+      "code": "dx翻译",
+      "explain": "ai翻译,dx翻译,自己部署翻译服务器",
       "cmds": [
         "deepl",
         "mdeepl",

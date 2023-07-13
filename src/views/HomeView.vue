@@ -92,15 +92,14 @@
 import store from '@/store'
 // eslint-disable-next-line no-undef
 utools.onPluginEnter(({code, type, payload}) => {
-
   console.log('用户进入插件应用', code, type, payload)
   if (type === "over") {
     // Assign the payload field to the form.text property
     // eslint-disable-next-line no-unused-vars
     store.commit('settstext', payload)
   }
-
 })
+
 
 // Import the SettingEditor.vue view
 import settingEditor from "@/views/SettingEditor.vue";
@@ -128,7 +127,8 @@ export default {
       prev_result: "", // store the previous result
       loading: false,
       showDrawer: false,
-      auto_detect: false
+      auto_detect: false,
+      can_translate: true
     };
   },
   computed: {
@@ -197,6 +197,9 @@ export default {
   },
   methods: {
     async translate(checkPrev = true) {
+      if (!this.can_translate){
+        return
+      }
 
       // If the text to be translated is greater than 0, translate it. If the result is the same as the previous one, do not translate
       if (store.state.tstext.length === 0) {
@@ -224,6 +227,7 @@ export default {
           },
           body: JSON.stringify(this.form)
         });
+
         let data = await response.json();
         if (data.code === 200) {
           this.result = data.data;
@@ -235,10 +239,18 @@ export default {
           this.prev_result = this.result;
         } else {
           this.$message.error(this.$t('translationFailed'));
+          this.can_translate=false
+          setTimeout(() => {
+            this.can_translate=true
+          }, 1000);
         }
       } catch (error) {
         console.error(error);
         this.$message.error(this.$t('translationFailed'));
+        this.can_translate=false
+        setTimeout(() => {
+          this.can_translate=true
+        }, 1000);
       }
     },
     async auto_detect_metion() {
@@ -274,6 +286,8 @@ export default {
           })
           .catch(error => {
             console.error(error);
+            // Delay for 1 second before retrying the translation
+
           });
     },
     copyOnly() {
