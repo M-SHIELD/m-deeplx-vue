@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <!--    <h3>{{ $t('translationFunction') }}</h3>-->
+
     <el-form :model="form" label-width="100px">
       <el-row style="margin-bottom: 20px">
         <el-input
@@ -8,25 +8,15 @@
             :autosize="{ minRows: 8, maxRows: 8}"
             :placeholder="$t('enterText')"
             v-model="$store.state.tstext"
+
             @blur="translate"
         >
         </el-input>
       </el-row>
       <el-row>
-<!--        <el-col :span="6">-->
-<!--          <el-form-item :label="$t('language')">-->
-<!--            <el-select v-model="language" :placeholder="$t('selectLanguage') " @change="changeLanguage">-->
-<!--              <el-option-->
-<!--                  v-for="item in i18lgs"-->
-<!--                  :key="item.value"-->
-<!--                  :label="item.label"-->
-<!--                  :value="item.value"-->
-<!--              >-->
-<!--              </el-option>-->
-<!--            </el-select>-->
-<!--          </el-form-item>-->
-<!--        </el-col>-->
-
+        <el-col :span="3">
+          <el-checkbox-button v-model="auto_detect">{{ $t('autoDetectButton') }}</el-checkbox-button>
+        </el-col>
         <el-col :span="8">
           <el-form-item :label="$t('sourceLanguage') ">
             <el-select v-model="$store.state.source_lang" :placeholder="$t('selectSourceLanguage')">
@@ -40,8 +30,8 @@
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="2">
-          <el-button type="primary" icon="el-icon-refresh" @click="swapLanguages"></el-button>
+        <el-col :span="3">
+          <el-button style="margin-left: 40px" type="primary" icon="el-icon-refresh" @click="swapLanguages"></el-button>
         </el-col>
         <el-col :span="8">
           <el-form-item :label="$t('targetLanguage') ">
@@ -59,14 +49,10 @@
         </el-col>
 
       </el-row>
-<!--      <el-row>-->
-<!--        <el-form-item :label="$t('apiAddress') ">-->
-<!--          <el-input v-model="$store.state.api_address" :placeholder="$t('enterApiAddress') "></el-input>-->
-<!--        </el-form-item>-->
-<!--      </el-row>-->
+
       <el-row>
 
-        <!--        <h3>{{ $t('translationResult') }}</h3>-->
+
         <el-input
             v-loading="loading"
             type="textarea"
@@ -135,16 +121,12 @@ export default {
         source_lang: "auto",
         target_lang: "EN",
       },
-      i18lgs: [
-        {value: "zh", label: "中文"},
-        {value: "EN", label: "English"},
-      ],
       result: "",
-      language: "zh",
       prev_text: "", // store the previous text
       prev_result: "", // store the previous result
       loading: false,
       showDrawer: false,
+      auto_detect: false
     };
   },
   computed: {
@@ -193,6 +175,10 @@ export default {
   watch: {
     tstextStatus() {
       this.translate();  //   需要调用的方法
+      //判断是否智能切换
+      if (this.auto_detect) {
+        this.auto_detect_metion()
+      }
     }, apiAddressStatus() {
       this.translate();  //   需要调用的方法
     }, sourceLangStatus() {
@@ -208,11 +194,11 @@ export default {
     }
   },
   methods: {
-    async translate(checkPrev=true) {
+    async translate(checkPrev = true) {
 
       // If the text to be translated is greater than 0, translate it. If the result is the same as the previous one, do not translate
       if (store.state.tstext.length === 0) {
-        this.result=""
+        this.result = ""
         return;
       }
 
@@ -253,8 +239,40 @@ export default {
         this.$message.error(this.$t('translationFailed'));
       }
     },
-    changeLanguage(value) {
-      this.$i18n.locale = value;
+    async auto_detect_metion() {
+      await fetch("https://api.edenai.run/v2/translation/language_detection", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzgwYzlhZGQtYzlkOS00NjVkLWE3MWEtZGU0OTc1NDVhZDUxIiwidHlwZSI6ImFwaV90b2tlbiJ9.IJJI9CtRUeANKdpzE5eynkB3QbE0a13LOpiVzuTGyDM",
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          "response_as_dict": true,
+          "attributes_as_list": false,
+          "show_original_response": false,
+          "providers": "amazon",
+          "text": store.state.tstext
+        })
+      })
+          .then(response => response.json())
+          .then(data => {
+            // 处理响应数据
+            if (data.amazon.status === "success" && data.amazon.items.length > 0) {
+              const language = (data.amazon.items[0].language).toUpperCase();
+              // 根据语言类型设置源语言和目标语言
+              if (language === store.state.target_lang) {
+                let temp = store.state.source_lang
+                store.commit("setsourceLanguage", store.state.target_lang);
+                store.commit("settargetLanguage", temp);
+              } else {
+                store.commit("setsourceLanguage", language);
+              }
+            }
+          })
+          .catch(error => {
+            console.error(error);
+          });
     },
     copyOnly() {
       // eslint-disable-next-line no-undef
@@ -280,21 +298,26 @@ export default {
         this.$message.error(this.$t('autoSwapFailed'));
         return
       }
-      store.commit("setsourceLanguage",store.state.target_lang)
-      store.commit("settargetLanguage",temp)
+      store.commit("setsourceLanguage", store.state.target_lang)
+      store.commit("settargetLanguage", temp)
     },
   },
   mounted() {
-    // eslint-disable-next-line no-undef
-    let api = getConfig("apiAddress")
-    // eslint-disable-next-line no-undef
-    let source_lang = getConfig("sourceLang")
-    // eslint-disable-next-line no-undef
-    let target_lang = getConfig("targetLang")
+    function loadSetting() {
+      // eslint-disable-next-line no-undef
+      let api = getConfig("apiAddress")
+      // eslint-disable-next-line no-undef
+      let source_lang = getConfig("sourceLang")
+      // eslint-disable-next-line no-undef
+      let target_lang = getConfig("targetLang")
 
-    store.commit("setapiAddress", api)
-    store.commit("setsourceLanguage", source_lang)
-    store.commit("settargetLanguage", target_lang)
+      store.commit("setapiAddress", api)
+      store.commit("setsourceLanguage", source_lang)
+      store.commit("settargetLanguage", target_lang)
+    }
+
+    loadSetting();
+
 
     // this.form.api_address = apiaddr
     // Listen for the close-drawer event from the event bus

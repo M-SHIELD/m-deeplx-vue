@@ -41,6 +41,8 @@ const messages = {
         saveSettings: 'Save Settings',
         settingsSaved: 'Settings saved',
         settingTitle: 'setting edit',
+        autoDetectButton: 'auto Detect',
+        settingsSavedapiAddressErrorInfo: 'settings Saved apiAddress Error Info',
         "auto": "Auto detect",
         "German": "German",
         "English": "English",
@@ -96,6 +98,8 @@ const messages = {
         saveSettings: '保存设置',
         settingsSaved: '设置已保存',
         settingTitle: '编辑设置',
+        autoDetectButton: '智能识别',
+        settingsSavedapiAddressErrorInfo: '请填写正确的API地址',
         "auto": "自动检测",
         "German": "德语",
         "English": "英语",
@@ -123,9 +127,11 @@ const messages = {
         "Swedish": "瑞典语"
     }
 }
-
+// eslint-disable-next-line no-undef
+let language = getConfig("language")
+store.commit("setlanguage", language)
 const i18n = new VueI18n({
-    locale: 'zh', // set locale
+    locale: store.state.language, // set locale
     messages, // set locale messages
 })
 
