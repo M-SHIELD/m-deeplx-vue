@@ -31,9 +31,10 @@
           </el-form-item>
         </el-col>
         <el-col :span="3">
-<!--          <el-form-item >-->
-            <el-button style="margin-left: 40px" circle type="primary" icon="el-icon-refresh" @click="swapLanguages"></el-button>
-<!--          </el-form-item>-->
+          <!--          <el-form-item >-->
+          <el-button style="margin-left: 40px" circle type="primary" icon="el-icon-refresh"
+                     @click="swapLanguages"></el-button>
+          <!--          </el-form-item>-->
         </el-col>
         <el-col :span="8">
           <el-form-item :label="$t('targetLanguage') ">
@@ -90,12 +91,11 @@
 
 <script>
 import store from '@/store'
-// eslint-disable-next-line no-undef
-utools.onPluginEnter(({code, type, payload}) => {
+
+window.utools.onPluginEnter(({code, type, payload}) => {
   console.log('用户进入插件应用', code, type, payload)
   if (type === "over") {
-    // Assign the payload field to the form.text property
-    // eslint-disable-next-line no-unused-vars
+
     store.commit('settstext', payload)
   }
 })
@@ -185,19 +185,18 @@ export default {
       this.translate();  //   需要调用的方法
     }, sourceLangStatus() {
       //自动保存
-      // eslint-disable-next-line no-undef
-      saveConfig("sourceLang", store.state.source_lang)
+      window.saveConfig("sourceLang", store.state.source_lang)
       this.translate(false);  //   需要调用的方法
     }, targetLangStatus() {
       //自动保存
-      // eslint-disable-next-line no-undef
-      saveConfig("targetLang", store.state.target_lang)
+
+      window.saveConfig("targetLang", store.state.target_lang)
       this.translate(false);  //   需要调用的方法
     }
   },
   methods: {
     async translate(checkPrev = true) {
-      if (!this.can_translate){
+      if (!this.can_translate) {
         return
       }
 
@@ -239,17 +238,17 @@ export default {
           this.prev_result = this.result;
         } else {
           this.$message.error(this.$t('translationFailed'));
-          this.can_translate=false
+          this.can_translate = false
           setTimeout(() => {
-            this.can_translate=true
+            this.can_translate = true
           }, 1000);
         }
       } catch (error) {
         console.error(error);
         this.$message.error(this.$t('translationFailed'));
-        this.can_translate=false
+        this.can_translate = false
         setTimeout(() => {
-          this.can_translate=true
+          this.can_translate = true
         }, 1000);
       }
     },
@@ -291,21 +290,21 @@ export default {
           });
     },
     copyOnly() {
-      // eslint-disable-next-line no-undef
-      mcopy(this.result)
+
+      window.mcopy(this.result)
       this.$message.success(this.$t('copySuccessful'));
     },
     copyAndHide() {
-      // eslint-disable-next-line no-undef
-      mcopyHide(this.result)
+
+      window.mcopyHide(this.result)
     },
     copyAndInput() {
-      // eslint-disable-next-line no-undef
-      mcopyHideEnter(this.result)
+
+      window.mcopyHideEnter(this.result)
     },
     saveConfig() {
-      // eslint-disable-next-line no-undef
-      saveConfig(this.form.api_address);
+
+      window.saveConfig(this.form.api_address);
     },
     swapLanguages() {
       let temp = store.state.source_lang;
@@ -320,12 +319,12 @@ export default {
   },
   mounted() {
     function loadSetting() {
-      // eslint-disable-next-line no-undef
-      let api = getConfig("apiAddress")
-      // eslint-disable-next-line no-undef
-      let source_lang = getConfig("sourceLang")
-      // eslint-disable-next-line no-undef
-      let target_lang = getConfig("targetLang")
+
+      let api = window.getConfig("apiAddress")
+
+      let source_lang = window.getConfig("sourceLang")
+
+      let target_lang = window.getConfig("targetLang")
 
       store.commit("setapiAddress", api)
       store.commit("setsourceLanguage", source_lang)

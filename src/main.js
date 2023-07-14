@@ -127,8 +127,8 @@ const messages = {
         "Swedish": "瑞典语"
     }
 }
-// eslint-disable-next-line no-undef
-let language = getConfig("language")
+
+let language = window.getConfig("language")
 store.commit("setlanguage", language)
 const i18n = new VueI18n({
     locale: store.state.language, // set locale

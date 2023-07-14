@@ -69,12 +69,12 @@ export default {
       this.$refs.settingsForm.validate(valid => {
         if (valid) {
           // 表单验证通过，执行保存设置的逻辑
-          // eslint-disable-next-line no-undef
-          saveConfig("apiAddress", this.settings.api_address);
+
+          window.saveConfig("apiAddress", this.settings.api_address);
           this.$store.commit("setapiAddress", this.settings.api_address);
 
-          // eslint-disable-next-line no-undef
-          saveConfig("language", this.language)
+
+          window.saveConfig("language", this.language)
           this.$store.commit("setlanguage", this.language)
 
           // console.log("Saving settings:", this.settings);
@@ -92,8 +92,8 @@ export default {
       this.$i18n.locale = value;
     },
     openBrowserLink(url) {
-      // eslint-disable-next-line no-undef
-      oepnUrl(url)
+
+      window.oepnUrl(url)
     }
   },
   mounted() {

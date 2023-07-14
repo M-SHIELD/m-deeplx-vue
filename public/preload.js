@@ -6,8 +6,7 @@
  */
 window.oepnUrl = async function (url) {
 
-    // eslint-disable-next-line no-undef
-    utools.shellOpenExternal(url)
+    window.utools.shellOpenExternal(url)
 }
 
 
@@ -17,8 +16,8 @@ window.oepnUrl = async function (url) {
  * @param v
  */
 window.saveConfig = function (k,v) {
-    utools.dbStorage.setItem(k, v)
-    console.log(k+":"+utools.dbStorage.getItem(k)+" 保存")
+    window.utools.dbStorage.setItem(k, v)
+    console.log(k+":"+window.utools.dbStorage.getItem(k)+" 保存")
 }
 
 /**
@@ -27,26 +26,26 @@ window.saveConfig = function (k,v) {
  * @returns {*} v
  */
 window.getConfig = function (k) {
-    return utools.dbStorage.getItem(k)
+    return window.utools.dbStorage.getItem(k)
 }
 
 // 复制
 window.mcopy = function (text) {
-    utools.copyText(text)
+    window.utools.copyText(text)
 }
 
 
 //复制且隐藏
 window.mcopyHide = function (text) {
-    utools.copyText(text)
-    utools.hideMainWindow()
+    window.utools.copyText(text)
+    window.utools.hideMainWindow()
 
 }
 
 //复制且输入
 window.mcopyHideEnter = function (text) {
-    utools.copyText(text)
-    utools.hideMainWindow()
-    utools.hideMainWindowTypeString(text)
+    window.utools.copyText(text)
+    window.utools.hideMainWindow()
+    window.utools.hideMainWindowTypeString(text)
 }
 
