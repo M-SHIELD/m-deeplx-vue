@@ -7,9 +7,10 @@ export default new Vuex.Store({
     state: {
         tstext: "",
         api_address: "",
-        source_lang: "",
-        target_lang: "",
-        language: "",
+        source_lang: "auto",
+        target_lang: "ZH",
+        language: "zh",
+        auto_detect: true,
     },
     getters: {},
     mutations: {
@@ -27,6 +28,9 @@ export default new Vuex.Store({
         },
         setlanguage(state, language) {
             state.language = language;
+        },
+        setautodetect(state, auto_detect) {
+            state.auto_detect = auto_detect;
         }
     },
     actions: {},

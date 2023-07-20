@@ -15,7 +15,7 @@
       </el-row>
       <el-row>
         <el-col :span="5">
-          <el-checkbox-button v-model="auto_detect">{{ $t('autoDetectButton') }}</el-checkbox-button>
+          <el-checkbox-button v-model="$store.state.auto_detect">{{ $t('autoDetectButton') }}</el-checkbox-button>
         </el-col>
         <el-col :span="8">
           <el-form-item :label="$t('sourceLanguage') ">
@@ -144,6 +144,9 @@ export default {
     targetLangStatus() {  //  计算属性
       return this.$store.state.target_lang; //  Vuex 中定义的属性
     },
+    autoDetect(){
+      return this.$store.state.auto_detect;
+    },
     languages() {
       return [
         {value: "auto", label: this.$t("auto")},
@@ -192,6 +195,9 @@ export default {
 
       window.saveConfig("targetLang", store.state.target_lang)
       this.translate(false);  //   需要调用的方法
+    },
+    autoDetect(){
+      window.saveConfig("autoDetect", store.state.auto_detect)
     }
   },
   methods: {
@@ -321,14 +327,15 @@ export default {
     function loadSetting() {
 
       let api = window.getConfig("apiAddress")
-
       let source_lang = window.getConfig("sourceLang")
-
       let target_lang = window.getConfig("targetLang")
+      let auto_detect = window.getConfig("autoDetect")
+
 
       store.commit("setapiAddress", api)
       store.commit("setsourceLanguage", source_lang)
       store.commit("settargetLanguage", target_lang)
+      store.commit("setautodetect", auto_detect)
     }
 
     loadSetting();

@@ -19,7 +19,7 @@
 
       <el-form-item :label="$t('apiType')">
         <el-select v-model="settings.api_type" :placeholder="$t('selectApiType')">
-          <el-option label="AI" value="ai"></el-option>
+<!--          <el-option label="AI" value="ai"></el-option>-->
           <el-option label="DeepLX" value="deeplx"></el-option>
         </el-select>
       </el-form-item>
