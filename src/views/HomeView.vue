@@ -8,7 +8,6 @@
             :autosize="{ minRows: 8, maxRows: 8}"
             :placeholder="$t('enterText')"
             v-model="$store.state.tstext"
-
             @blur="translate"
         >
         </el-input>
@@ -128,7 +127,8 @@ export default {
       loading: false,
       showDrawer: false,
       auto_detect: false,
-      can_translate: true
+      can_translate: true,
+      timeoutId: null
     };
   },
   computed: {
@@ -178,19 +178,33 @@ export default {
     }
   },
   watch: {
-    tstextStatus() {
+    async tstextStatus() {
+      this.loading = true
+      // 清除之前的延迟调用
+      clearTimeout(this.timeoutId);
+
+      // 设置新的延迟调用
+      this.timeoutId = setTimeout(async () => {
+        // 需要调用的方法
+        // 判断是否智能切换
+        if (this.$store.state.auto_detect) {
+          await this.auto_detect_metion();
+          await this.translate();
+        } else {
+          await this.translate();
+        }
+        this.loading = false;
+      }, 400);
+    },
+    apiAddressStatus() {
       this.translate();  //   需要调用的方法
-      //判断是否智能切换
-      if (this.auto_detect) {
-        this.auto_detect_metion()
-      }
-    }, apiAddressStatus() {
-      this.translate();  //   需要调用的方法
-    }, sourceLangStatus() {
+    },
+    sourceLangStatus() {
       //自动保存
       window.saveConfig("sourceLang", store.state.source_lang)
       this.translate(false);  //   需要调用的方法
-    }, targetLangStatus() {
+    },
+    targetLangStatus() {
       //自动保存
 
       window.saveConfig("targetLang", store.state.target_lang)
@@ -218,6 +232,7 @@ export default {
         return;
       }
       this.loading = true
+
       this.$set(this.form, "text", store.state.tstext)
       this.$set(this.form, "api_address", store.state.api_address)
       this.$set(this.form, "source_lang", store.state.source_lang)
@@ -256,6 +271,7 @@ export default {
         setTimeout(() => {
           this.can_translate = true
         }, 1000);
+        this.loading = false;
       }
     },
     async auto_detect_metion() {
@@ -281,9 +297,13 @@ export default {
               const language = (data.amazon.items[0].language).toUpperCase();
               // 根据语言类型设置源语言和目标语言
               if (language === store.state.target_lang) {
-                let temp = store.state.source_lang
-                store.commit("setsourceLanguage", store.state.target_lang);
-                store.commit("settargetLanguage", temp);
+                if (store.state.source_lang === "auto") {
+                  store.commit("setsourceLanguage", language);
+                } else {
+                  let temp = store.state.source_lang;
+                  store.commit("setsourceLanguage", store.state.target_lang);
+                  store.commit("settargetLanguage", temp);
+                }
               } else {
                 store.commit("setsourceLanguage", language);
               }

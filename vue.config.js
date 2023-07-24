@@ -3,6 +3,7 @@ module.exports = defineConfig({
   assetsDir:"static",
   publicPath: './',
   transpileDependencies: true,
+  productionSourceMap: false, //打包不生成map
   devServer:{
     port: 8080,
     open: false, //浏览器自启动
