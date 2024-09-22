@@ -67,7 +67,12 @@ const messages = {
         "Romanian": "Romanian",
         "Slovak": "Slovak",
         "Slovenian": "Slovenian",
-        "Swedish": "Swedish"
+        "Swedish": "Swedish",
+        modelName: 'Model Name', // 英文
+        deeplxApiDocs: 'DeepLX API Documentation',
+        deepseekApiDocs: 'DeepSeek API Documentation',
+        googleApiDocs: 'Google Translate API Documentation',
+        getDeepLApiToken: 'Get DeepL API Token',
     },
     zh: {
         translationFunction: '翻译功能',
@@ -124,7 +129,16 @@ const messages = {
         "Romanian": "罗马尼亚语",
         "Slovak": "斯洛伐克语",
         "Slovenian": "斯洛文尼亚语",
-        "Swedish": "瑞典语"
+        "Swedish": "瑞典语",
+        modelName: '模型名称', // 中文
+        apiEndpoint: 'API端点',
+        officialEndpoint: '官方端点',
+        customEndpoint: '自定义端点',
+        customModel: '自定义模型',
+        deeplxApiDocs: 'DeepLX API文档',
+        deepseekApiDocs: 'DeepSeek API文档',
+        googleApiDocs: 'Google翻译API文档',
+        getDeepLApiToken: '获取DeepL API令牌',
     }
 }
 

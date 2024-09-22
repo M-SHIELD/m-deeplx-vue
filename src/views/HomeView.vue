@@ -237,6 +237,12 @@ export default {
       this.$set(this.form, "target_lang", store.state.target_lang)
       this.$set(this.form, "api_type", store.state.api_type)
       this.$set(this.form, "api_token", store.state.api_token)
+      this.$set(this.form, "api_key", store.state.api_key)
+      this.$set(this.form, "openai_api_address", store.state.openai_api_address)
+      this.$set(this.form, "openai_api_token", store.state.openai_api_token)
+      this.$set(this.form, "openai_model", store.state.openai_model)
+      this.$set(this.form, "openai_custom_model", store.state.openai_custom_model)
+      this.$set(this.form, "deepl_api_token", store.state.deepl_api_token)
 
       try {
         let response;
@@ -266,6 +272,55 @@ export default {
               max_tokens: 2000
             })
           });
+        } else if (this.form.api_type === 'google_api') {
+          response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${this.form.api_key}`, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              q: this.form.text,
+              source: this.form.source_lang,
+              target: this.form.target_lang,
+              format: 'text'
+            })
+          });
+        } else if (this.form.api_type === 'google_free') {
+          // 使用免费的谷歌翻译API
+          response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${this.form.source_lang}&tl=${this.form.target_lang}&dt=t&q=${encodeURIComponent(this.form.text)}`);
+        } else if (this.form.api_type === 'openai') {
+          
+          const model = this.form.openai_custom_model || this.form.openai_model;
+          const prompt = `Translate the following text from ${this.form.source_lang} to ${this.form.target_lang}:\n\n${this.form.text}\n\nTranslation:`;
+          response = await fetch(`${this.form.openai_api_address}/v1/chat/completions`, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${this.form.openai_api_token}`
+            },
+            body: JSON.stringify({
+              model: model,
+              messages: [
+                {role: "system", content: "You are a professional translator."},
+                {role: "user", content: prompt}
+              ],
+              temperature: 0.3,
+              max_tokens: 1000
+            })
+          });
+        } else if (this.form.api_type === 'deepl_official') {
+          response = await fetch('https://api-free.deepl.com/v2/translate', {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': `DeepL-Auth-Key ${this.form.deepl_api_token}`
+            },
+            body: new URLSearchParams({
+              text: this.form.text,
+              source_lang: this.form.source_lang,
+              target_lang: this.form.target_lang
+            })
+          });
         }
 
         let data = await response.json();
@@ -273,6 +328,14 @@ export default {
           this.result = data.data;
         } else if (this.form.api_type === 'deepseek' && data.choices && data.choices.length > 0) {
           this.result = data.choices[0].message.content.trim();
+        } else if (this.form.api_type === 'google_api' && data.data && data.data.translations) {
+          this.result = data.data.translations[0].translatedText;
+        } else if (this.form.api_type === 'google_free' && data[0] && data[0][0] && data[0][0][0]) {
+          this.result = data[0][0][0];
+        } else if (this.form.api_type === 'openai' && data.choices && data.choices.length > 0) {
+          this.result = data.choices[0].message.content.trim();
+        } else if (this.form.api_type === 'deepl_official' && data.translations && data.translations.length > 0) {
+          this.result = data.translations[0].text;
         } else {
           throw new Error('Translation failed');
         }
@@ -362,17 +425,33 @@ export default {
   },
   mounted() {
     function loadSetting() {
-
-      let api = window.getConfig("apiAddress")
+      let api_type = window.getConfig("apiType")
+      let api_address = window.getConfig("apiAddress")
+      let api_token = window.getConfig("apiToken")
+      let api_key = window.getConfig("apiKey")
       let source_lang = window.getConfig("sourceLang")
       let target_lang = window.getConfig("targetLang")
       let auto_detect = window.getConfig("autoDetect")
+      let openai_endpoint_type = window.getConfig("openaiEndpointType")
+      let openai_api_address = window.getConfig("openaiApiAddress")
+      let openai_api_token = window.getConfig("openaiApiToken")
+      let openai_model_type = window.getConfig("openaiModelType")
+      let openai_custom_model = window.getConfig("openaiCustomModel")
+      let deepl_api_token = window.getConfig("deeplApiToken")
 
-
-      store.commit("setapiAddress", api)
+      store.commit("setApiType", api_type)
+      store.commit("setapiAddress", api_address)
+      store.commit("setApiToken", api_token)
+      store.commit("setApiKey", api_key)
       store.commit("setsourceLanguage", source_lang)
       store.commit("settargetLanguage", target_lang)
       store.commit("setautodetect", auto_detect)
+      store.commit("setOpenaiEndpointType", openai_endpoint_type)
+      store.commit("setOpenaiApiAddress", openai_api_address)
+      store.commit("setOpenaiApiToken", openai_api_token)
+      store.commit("setOpenaiModelType", openai_model_type)
+      store.commit("setOpenaiCustomModel", openai_custom_model)
+      store.commit("setDeeplApiToken", deepl_api_token)
     }
 
     loadSetting();

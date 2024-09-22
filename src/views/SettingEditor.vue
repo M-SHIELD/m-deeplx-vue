@@ -20,7 +20,11 @@
       <el-form-item :label="$t('apiType')">
         <el-select v-model="settings.api_type" :placeholder="$t('selectApiType')">
           <el-option label="DeepLX" value="deeplx"></el-option>
+          <el-option label="DeepL Official" value="deepl_official"></el-option>
           <el-option label="DeepSeek" value="deepseek"></el-option>
+          <el-option label="Google (API)" value="google_api"></el-option>
+          <el-option label="Google (Free)" value="google_free"></el-option>
+          <el-option label="OpenAI" value="openai"></el-option>
         </el-select>
       </el-form-item>
 
@@ -31,9 +35,17 @@
         :label="$t('apiAddress')"
       >
         <el-input v-model="settings.api_address" :placeholder="$t('enterApiAddress')"></el-input>
-        <a href="javascript:void(0)"
-           @click="openBrowserLink('https://obs.ake1.com/编程/如何创建deeplx代理服务器/')"
-           target="_blank">查看API部署教程</a>
+        <a href="javascript:void(0)" @click="openBrowserLink('https://github.com/OwO-Network/DeepLX')">{{ $t('deeplxApiDocs') }}</a>
+      </el-form-item>
+
+      <el-form-item 
+        v-if="settings.api_type === 'deepl_official'"
+        :rules="apiTokenRules" 
+        prop="deepl_api_token" 
+        :label="$t('apiToken')"
+      >
+        <el-input v-model="settings.deepl_api_token" :placeholder="$t('enterApiToken')"></el-input>
+        <a href="javascript:void(0)" @click="openBrowserLink('https://www.deepl.com/docs-api')">{{ $t('getDeepLApiToken') }}</a>
       </el-form-item>
 
       <el-form-item 
@@ -43,7 +55,63 @@
         :label="$t('apiToken')"
       >
         <el-input v-model="settings.api_token" :placeholder="$t('enterApiToken')"></el-input>
+        <a href="javascript:void(0)" @click="openBrowserLink('https://platform.deepseek.com/docs')">{{ $t('deepseekApiDocs') }}</a>
       </el-form-item>
+
+      <el-form-item 
+        v-if="settings.api_type === 'google_api'"
+        :rules="apiKeyRules" 
+        prop="api_key" 
+        :label="$t('apiKey')"
+      >
+        <el-input v-model="settings.api_key" :placeholder="$t('enterApiKey')"></el-input>
+        <a href="javascript:void(0)" @click="openBrowserLink('https://cloud.google.com/translate/docs')">{{ $t('googleApiDocs') }}</a>
+      </el-form-item>
+
+      <template v-if="settings.api_type === 'openai'">
+        <el-form-item :label="$t('apiEndpoint')">
+          <el-radio-group v-model="settings.openai_endpoint_type">
+            <el-radio label="official">{{ $t('officialEndpoint') }}</el-radio>
+            <el-radio label="custom">{{ $t('customEndpoint') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item 
+          v-if="settings.openai_endpoint_type === 'custom'"
+          :rules="apiAddressRules" 
+          prop="openai_api_address" 
+          :label="$t('apiAddress')"
+        >
+          <el-input v-model="settings.openai_api_address" :placeholder="$t('enterApiAddress')"></el-input>
+        </el-form-item>
+
+        <el-form-item 
+          :rules="apiTokenRules" 
+          prop="openai_api_token" 
+          :label="$t('apiToken')"
+        >
+          <el-input v-model="settings.openai_api_token" :placeholder="$t('enterApiToken')"></el-input>
+        </el-form-item>
+
+        <el-form-item :label="$t('modelName')">
+          <el-select v-model="settings.openai_model_type" :placeholder="$t('selectModel')">
+            <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
+            <el-option label="gpt-4" value="gpt-4"></el-option>
+            <el-option label="gpt-4-32k" value="gpt-4-32k"></el-option>
+            <el-option label="gpt-4-turbo" value="gpt-4-turbo"></el-option>
+            <el-option label="gpt-4-1106-preview" value="gpt-4-1106-preview"></el-option>
+            <el-option label="gpt-4-0125-preview" value="gpt-4-0125-preview"></el-option>
+            <el-option label="gpt-4-vision-preview" value="gpt-4-vision-preview"></el-option>
+            <el-option label="custom" value="custom">{{ $t('customModel') }}</el-option>
+          </el-select>
+          <el-input 
+            v-if="settings.openai_model_type === 'custom'"
+            v-model="settings.openai_custom_model" 
+            :placeholder="$t('enterCustomModel')"
+          ></el-input>
+        </el-form-item>
+      </template>
+
       <!-- Add a button to save the settings -->
       <el-button type="primary" @click="saveSettings">{{ $t('saveSettings') }}</el-button>
     </el-form>
@@ -61,7 +129,13 @@ export default {
       settings: {
         api_type: "deeplx",
         api_address: "",
-        api_token: ""
+        api_token: "",
+        api_key: "",
+        openai_endpoint_type: 'official',
+        openai_api_address: "https://api.openai.com",
+        openai_api_token: "sk-xxxx",
+        openai_model_type: "gpt-3.5-turbo",
+        openai_custom_model: "gpt-4o-mini",
       },
       language: "zh",
       i18lgs: [
@@ -69,11 +143,13 @@ export default {
         {value: "EN", label: "English"},
       ],
       apiAddressRules: [
-        {required: true, message: "请输入API地址", trigger: "blur"},
-        {pattern: /^https?:\/\/.*\/translate$/, message: "API地址格式不正确", trigger: "blur"}
+        {required: true, message: "请输入API地址", trigger: "blur"}
       ],
       apiTokenRules: [
         {required: true, message: "请输入API令牌", trigger: "blur"}
+      ],
+      apiKeyRules: [
+        {required: true, message: "请输入API密钥", trigger: "blur"}
       ],
     };
   },
@@ -90,9 +166,30 @@ export default {
           if (this.settings.api_type === 'deeplx') {
             window.saveConfig("apiAddress", this.settings.api_address);
             this.$store.commit("setapiAddress", this.settings.api_address);
+          } else if (this.settings.api_type === 'deepl_official') {
+            window.saveConfig("deeplApiToken", this.settings.deepl_api_token);
+            this.$store.commit("setDeeplApiToken", this.settings.deepl_api_token);
           } else if (this.settings.api_type === 'deepseek') {
             window.saveConfig("apiToken", this.settings.api_token);
             this.$store.commit("setApiToken", this.settings.api_token);
+          } else if (this.settings.api_type === 'google_api') {
+            window.saveConfig("apiKey", this.settings.api_key);
+            this.$store.commit("setApiKey", this.settings.api_key);
+          } else if (this.settings.api_type === 'openai') {
+            window.saveConfig("openaiEndpointType", this.settings.openai_endpoint_type);
+            if (this.settings.openai_endpoint_type === 'custom') {
+              window.saveConfig("openaiApiAddress", this.settings.openai_api_address);
+            }
+            window.saveConfig("openaiApiToken", this.settings.openai_api_token);
+            window.saveConfig("openaiModelType", this.settings.openai_model_type);
+            if (this.settings.openai_model_type === 'custom') {
+              window.saveConfig("openaiCustomModel", this.settings.openai_custom_model);
+            }
+            this.$store.commit("setOpenaiEndpointType", this.settings.openai_endpoint_type);
+            this.$store.commit("setOpenaiApiAddress", this.settings.openai_api_address);
+            this.$store.commit("setOpenaiApiToken", this.settings.openai_api_token);
+            this.$store.commit("setOpenaiModelType", this.settings.openai_model_type);
+            this.$store.commit("setOpenaiCustomModel", this.settings.openai_custom_model);
           }
 
           window.saveConfig("language", this.language);
@@ -126,6 +223,13 @@ export default {
 
     this.language = this.$store.state.language
 
+    if (this.$store.state.api_type === 'openai') {
+      this.settings.openai_endpoint_type = this.$store.state.openai_endpoint_type;
+      this.settings.openai_api_address = this.$store.state.openai_api_address;
+      this.settings.openai_api_token = this.$store.state.openai_api_token;
+      this.settings.openai_model_type = this.$store.state.openai_model_type;
+      this.settings.openai_custom_model = this.$store.state.openai_custom_model;
+    }
   }
 };
 </script>

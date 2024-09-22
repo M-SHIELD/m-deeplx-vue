@@ -1,65 +1,72 @@
-# dx翻译
+# m-deeplx-vue
 
-dx翻译,别名m-deeplx,支持ai翻译,支持各种自己部署各种翻译服务的utools翻译插件,适合有点运维基础的人员使用
+m-deeplx-vue 是一个基于 Vue.js 的多功能翻译工具,集成了多种翻译 API,为用户提供便捷的翻译服务。
 
+## 特性
 
-## 功能特点
+- 支持多种翻译 API:
+  - DeepLX
+  - DeepL 官方 API
+  - DeepSeek
+  - Google Translate API
+  - Google Translate (免费版)
+  - OpenAI
+- 自动语言检测
+- 支持语言切换
+- 多语言界面 (中文和英文)
+- 集成 uTools 插件功能
 
-- 私有deeplx部署翻译
-- 支持deepseekcoder翻译
-- 私有chatgpt部署翻译(待支持)
-- 私有谷歌部署翻译(待支持)
-- 私有Amazon部署翻译(待支持)
-- 双语菜单支持
+## 技术栈
+
+- Vue.js
+- Vuex
+- Vue Router
+- Element UI
+- Vue I18n
+
+## 主要功能
+
+1. 文本翻译: 支持多种语言之间的互译。
+2. API 设置: 用户可以选择不同的翻译 API 并配置相关参数。
+3. 语言自动检测: 能够自动识别输入文本的语言。
+4. 复制功能: 支持复制翻译结果,复制并隐藏窗口,以及复制并输入结果。
+5. 设置管理: 提供友好的界面来管理各种 API 设置和偏好。
 
 ## 截图
 ![img_3.png](https://www.ake1.com/mkoss/2023-07-13/6e67dc21.png)
 ![img_4.png](https://www.ake1.com/mkoss/2023-07-13/f7db2c8d.png)
 
-## 安装
+## 安装和使用
 
-1. utools插件市场搜索dx翻译
+1. 克隆仓库:
+   ```bash
+   git clone https://github.com/your-username/m-deeplx-vue.git
+   ```
 
-## 使用方法
+2. 安装依赖:
+   ```bash
+   cd m-deeplx-vue
+   npm install
+   ```
 
-1. 加入设置
-2. 设置api地址
+3. 运行开发服务器:
+   ```bash
+   npm run serve
+   ```
 
-## 技术栈
+4. 构建生产版本:
+   ```bash
+   npm run build
+   ```
 
-vue,vuex,route,element-ui,es6,preload.js
+## 配置
 
-## 目录结构
-
-```
-m-deeplx-vue
-├── babel.config.js
-├── jsconfig.json
-├── package-lock.json
-├── package.json
-├── public
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── logo.png
-│   ├── plugin.json utools插件配置
-│   └── preload.js preload.js
-├── README.md
-├── src
-│   ├── App.vue
-│   ├── assets
-│   ├── components
-│   ├── main.js
-│   ├── plugins
-│   ├── router
-│   ├── store
-│   └── views
-└── vue.config.js
-```
+在使用之前,请确保正确配置了所需的 API 密钥和端点。您可以在应用的设置界面中进行这些配置。
 
 ## 贡献
 
-欢迎贡献代码和提出问题。请阅读贡献指南并提交拉取请求。
+欢迎提交 issues 和 pull requests 来帮助改进这个项目。
 
-## 作者许可
+## 许可证
 
-可以二次开发,但必须标明来源
+[MIT License](LICENSE)

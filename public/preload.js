@@ -1,4 +1,3 @@
-
 /**
  * 打开默认浏览器加载指定连接
  * @param url 链接
@@ -49,3 +48,6 @@ window.mcopyHideEnter = function (text) {
     window.utools.hideMainWindowTypeString(text)
 }
 
+window.utools.onPluginReady(() => {
+  loadSetting();
+});
