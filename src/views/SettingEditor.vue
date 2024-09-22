@@ -19,18 +19,29 @@
 
       <el-form-item :label="$t('apiType')">
         <el-select v-model="settings.api_type" :placeholder="$t('selectApiType')">
-<!--          <el-option label="AI" value="ai"></el-option>-->
           <el-option label="DeepLX" value="deeplx"></el-option>
+          <el-option label="DeepSeek" value="deepseek"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item :rules="apiAddressRules" prop="api_address" :label="$t('apiAddress')">
+
+      <el-form-item 
+        v-if="settings.api_type === 'deeplx'"
+        :rules="apiAddressRules" 
+        prop="api_address" 
+        :label="$t('apiAddress')"
+      >
         <el-input v-model="settings.api_address" :placeholder="$t('enterApiAddress')"></el-input>
         <a href="javascript:void(0)"
            @click="openBrowserLink('https://obs.ake1.com/编程/如何创建deeplx代理服务器/')"
            target="_blank">查看API部署教程</a>
       </el-form-item>
 
-      <el-form-item :label="$t('apiToken')">
+      <el-form-item 
+        v-if="settings.api_type === 'deepseek'"
+        :rules="apiTokenRules" 
+        prop="api_token" 
+        :label="$t('apiToken')"
+      >
         <el-input v-model="settings.api_token" :placeholder="$t('enterApiToken')"></el-input>
       </el-form-item>
       <!-- Add a button to save the settings -->
@@ -61,6 +72,9 @@ export default {
         {required: true, message: "请输入API地址", trigger: "blur"},
         {pattern: /^https?:\/\/.*\/translate$/, message: "API地址格式不正确", trigger: "blur"}
       ],
+      apiTokenRules: [
+        {required: true, message: "请输入API令牌", trigger: "blur"}
+      ],
     };
   },
   methods: {
@@ -70,12 +84,19 @@ export default {
         if (valid) {
           // 表单验证通过，执行保存设置的逻辑
 
-          window.saveConfig("apiAddress", this.settings.api_address);
-          this.$store.commit("setapiAddress", this.settings.api_address);
+          window.saveConfig("apiType", this.settings.api_type);
+          this.$store.commit("setApiType", this.settings.api_type);
 
+          if (this.settings.api_type === 'deeplx') {
+            window.saveConfig("apiAddress", this.settings.api_address);
+            this.$store.commit("setapiAddress", this.settings.api_address);
+          } else if (this.settings.api_type === 'deepseek') {
+            window.saveConfig("apiToken", this.settings.api_token);
+            this.$store.commit("setApiToken", this.settings.api_token);
+          }
 
-          window.saveConfig("language", this.language)
-          this.$store.commit("setlanguage", this.language)
+          window.saveConfig("language", this.language);
+          this.$store.commit("setlanguage", this.language);
 
           // console.log("Saving settings:", this.settings);
           this.$message.success(this.$t("settingsSaved"));
@@ -98,6 +119,10 @@ export default {
   },
   mounted() {
     this.settings.api_address = this.$store.state.api_address
+
+    this.settings.api_type = this.$store.state.api_type // 添加这行来加载保存的API类型
+
+    this.settings.api_token = this.$store.state.api_token // 添加这行来加载保存的API令牌
 
     this.language = this.$store.state.language
 

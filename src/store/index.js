@@ -31,6 +31,12 @@ export default new Vuex.Store({
         },
         setautodetect(state, auto_detect) {
             state.auto_detect = auto_detect;
+        },
+        setApiType(state, api_type) {
+            state.api_type = api_type;
+        },
+        setApiToken(state, api_token) {
+            state.api_token = api_token;
         }
     },
     actions: {},

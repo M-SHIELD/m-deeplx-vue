@@ -220,15 +220,13 @@ export default {
         return
       }
 
-      // If the text to be translated is greater than 0, translate it. If the result is the same as the previous one, do not translate
       if (store.state.tstext.length === 0) {
         this.result = ""
         return;
       }
 
-      // If the text is the same as the previous one, do not translate
       if (checkPrev && store.state.tstext === this.prev_text) {
-        this.result = this.prev_result; // use the previous result
+        this.result = this.prev_result;
         return;
       }
       this.loading = true
@@ -237,40 +235,59 @@ export default {
       this.$set(this.form, "api_address", store.state.api_address)
       this.$set(this.form, "source_lang", store.state.source_lang)
       this.$set(this.form, "target_lang", store.state.target_lang)
+      this.$set(this.form, "api_type", store.state.api_type)
+      this.$set(this.form, "api_token", store.state.api_token)
 
-      // Otherwise, call the translation function as usual
       try {
-        let response = await fetch(this.form.api_address, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(this.form)
-        });
+        let response;
+        if (this.form.api_type === 'deeplx') {
+          response = await fetch(this.form.api_address, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.form)
+          });
+        } else if (this.form.api_type === 'deepseek') {
+          const prompt = `Translate the following text from ${this.form.source_lang} to ${this.form.target_lang}:\n\n${this.form.text}\n\nTranslation:`;
+          response = await fetch('https://api.deepseek.com/chat/completions', {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${this.form.api_token}`
+            },
+            body: JSON.stringify({
+              model: "deepseek-chat",
+              messages: [
+                {role: "system", content: "You are a professional translator."},
+                {role: "user", content: prompt}
+              ],
+              temperature: 0.3,
+              max_tokens: 2000
+            })
+          });
+        }
 
         let data = await response.json();
-        if (data.code === 200) {
+        if (this.form.api_type === 'deeplx' && data.code === 200) {
           this.result = data.data;
-          this.loading = false;
-          // this.$message.success(this.$t('translationSuccessful'));
-
-          // Update the previous text and result
-          this.prev_text = store.state.tstext;
-          this.prev_result = this.result;
+        } else if (this.form.api_type === 'deepseek' && data.choices && data.choices.length > 0) {
+          this.result = data.choices[0].message.content.trim();
         } else {
-          this.$message.error(this.$t('translationFailed'));
-          this.can_translate = false
-          setTimeout(() => {
-            this.can_translate = true
-          }, 1000);
+          throw new Error('Translation failed');
         }
+
+        this.loading = false;
+        this.prev_text = store.state.tstext;
+        this.prev_result = this.result;
       } catch (error) {
         console.error(error);
         this.$message.error(this.$t('translationFailed'));
-        this.can_translate = false
+        this.can_translate = false;
         setTimeout(() => {
-          this.can_translate = true
+          this.can_translate = true;
         }, 1000);
+      } finally {
         this.loading = false;
       }
     },
