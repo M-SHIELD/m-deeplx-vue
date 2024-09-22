@@ -33,31 +33,13 @@ m-deeplx-vue 是一个基于 Vue.js 的多功能翻译工具,集成了多种翻�
 5. 设置管理: 提供友好的界面来管理各种 API 设置和偏好。
 
 ## 截图
-![img_3.png](https://www.ake1.com/mkoss/2023-07-13/6e67dc21.png)
-![img_4.png](https://www.ake1.com/mkoss/2023-07-13/f7db2c8d.png)
+![](https://r2.mxmicah.me/2024/09/208153c6ec634f90a2bc260533ea26bd.png)
+![](https://r2.mxmicah.me/2024/09/e9a092c5c75bb4ca5e05da9507dbe095.png)
+![](https://r2.mxmicah.me/2024/09/6a9b0ce0aa138dbc160bbdf2d69d2db5.png)
 
 ## 安装和使用
 
-1. 克隆仓库:
-   ```bash
-   git clone https://github.com/your-username/m-deeplx-vue.git
-   ```
-
-2. 安装依赖:
-   ```bash
-   cd m-deeplx-vue
-   npm install
-   ```
-
-3. 运行开发服务器:
-   ```bash
-   npm run serve
-   ```
-
-4. 构建生产版本:
-   ```bash
-   npm run build
-   ```
+1. utools 插件商城搜索 dx翻译
 
 ## 配置
 
