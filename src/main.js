@@ -73,6 +73,10 @@ const messages = {
         deepseekApiDocs: 'DeepSeek API Documentation',
         googleApiDocs: 'Google Translate API Documentation',
         getDeepLApiToken: 'Get DeepL API Token',
+        captureAndTranslate: 'Capture and Translate Image',
+        googleImageApiKey: 'Google Image API Key',
+        enterGoogleImageApiKey: 'Enter Google Image API Key',
+        
     },
     zh: {
         translationFunction: '翻译功能',
@@ -139,6 +143,11 @@ const messages = {
         deepseekApiDocs: 'DeepSeek API文档',
         googleApiDocs: 'Google翻译API文档',
         getDeepLApiToken: '获取DeepL API令牌',
+        captureAndTranslate: '截图并翻译图片',
+        loadPictureText: '加载图片翻译结果',
+        googleImageApiKey: '谷歌图片API密钥',
+        enterGoogleImageApiKey: '输入谷歌图片API密钥',
+        imageTargetLanguage: '图片翻译目标语言',
     }
 }
 
@@ -149,6 +158,8 @@ const i18n = new VueI18n({
     messages, // set locale messages
 })
 
+let image_target_lang = window.getConfig("image_target_lang")
+store.commit("setImageTargetLang", image_target_lang)
 
 new Vue({
     store,

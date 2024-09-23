@@ -85,6 +85,13 @@
     >
       <settingEditor></settingEditor>
     </el-drawer>
+    <!-- Add a button to capture and translate image -->
+    <el-button  type="primary" @click="captureAndTranslate">{{ $t('captureAndTranslate') }}</el-button>
+    <el-button  type="primary" @click="loadPictureText">{{ $t('loadPictureText') }}</el-button>
+    
+    <!-- <div v-if="this.translatedText">
+      <p>{{ translatedText }}</p>
+    </div> -->
   </div>
 </template>
 
@@ -128,7 +135,9 @@ export default {
       showDrawer: false,
       auto_detect: false,
       can_translate: true,
-      timeoutId: null
+      timeoutId: null,
+      translatedImage: null,
+      translatedText: null
     };
   },
   computed: {
@@ -212,6 +221,9 @@ export default {
     },
     autoDetect(){
       window.saveConfig("autoDetect", store.state.auto_detect)
+    },
+    translatedText() {
+      this.forceUpdate(); // 当 translatedText 变化时强制刷新
     }
   },
   methods: {
@@ -422,6 +434,27 @@ export default {
       store.commit("setsourceLanguage", store.state.target_lang)
       store.commit("settargetLanguage", temp)
     },
+    loadPictureText(){
+      const result = window.utools.dbStorage.getItem("img_tred");
+        if (result && result.success) {
+          // 输出result
+          this.translatedText = result.translatedText;
+          this.result = result.translatedText;
+            this.$message.success(`翻译成功，源语言: ${result.detectedSourceLanguage}`);
+            this.forceUpdate(); // 强制刷新
+        } else {
+            this.$message.error(result ? result.error : "翻译失败");
+        }
+    },
+    async captureAndTranslate() {
+        const targetLang = this.$store.state.image_target_lang;
+        const googleImageApiKey = this.$store.state.google_image_api_key;
+        await window.captureAndTranslateImage(targetLang, googleImageApiKey);
+        
+    },
+    forceUpdate() {
+      this.$forceUpdate();
+    }
   },
   mounted() {
     function loadSetting() {
@@ -438,6 +471,8 @@ export default {
       let openai_model_type = window.getConfig("openaiModelType")
       let openai_custom_model = window.getConfig("openaiCustomModel")
       let deepl_api_token = window.getConfig("deeplApiToken")
+      let google_image_api_key = window.getConfig("googleImageApiKey")
+      let image_target_lang = window.getConfig("imageTargetLang")
 
       store.commit("setApiType", api_type)
       store.commit("setapiAddress", api_address)
@@ -452,6 +487,8 @@ export default {
       store.commit("setOpenaiModelType", openai_model_type)
       store.commit("setOpenaiCustomModel", openai_custom_model)
       store.commit("setDeeplApiToken", deepl_api_token)
+      store.commit("setGoogleImageApiKey", google_image_api_key)
+      store.commit("setImageTargetLang", image_target_lang)
     }
 
     loadSetting();

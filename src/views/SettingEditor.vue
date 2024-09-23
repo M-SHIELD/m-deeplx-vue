@@ -68,6 +68,25 @@
         <a href="javascript:void(0)" @click="openBrowserLink('https://cloud.google.com/translate/docs')">{{ $t('googleApiDocs') }}</a>
       </el-form-item>
 
+      <!-- Add Google Translate Image API Key setting -->
+      <el-form-item 
+        :rules="apiKeyRules" 
+        prop="google_image_api_key" 
+        :label="$t('googleImageApiKey')"
+      >
+        <el-input v-model="settings.google_image_api_key" :placeholder="$t('enterGoogleImageApiKey')"></el-input>
+        <a href="javascript:void(0)" @click="openBrowserLink('https://cloud.google.com/translate/docs')">{{ $t('googleApiDocs') }}</a>
+      </el-form-item>
+
+      <!-- Add target language setting for image translation -->
+      <el-form-item  :label="$t('imageTargetLanguage')">
+        <el-select v-model="settings.image_target_lang" :placeholder="$t('selectTargetLanguage')">
+          <el-option label="中文" value="zh"></el-option>
+          <el-option label="English" value="en"></el-option>
+          <!-- Add more languages as needed -->
+        </el-select>
+      </el-form-item>
+
       <template v-if="settings.api_type === 'openai'">
         <el-form-item :label="$t('apiEndpoint')">
           <el-radio-group v-model="settings.openai_endpoint_type">
@@ -131,6 +150,8 @@ export default {
         api_address: "",
         api_token: "",
         api_key: "",
+        google_image_api_key: "",
+        image_target_lang: "zh",
         openai_endpoint_type: 'official',
         openai_api_address: "https://api.openai.com",
         openai_api_token: "sk-xxxx",
@@ -195,6 +216,12 @@ export default {
           window.saveConfig("language", this.language);
           this.$store.commit("setlanguage", this.language);
 
+          
+          window.saveConfig("googleImageApiKey", this.settings.google_image_api_key);
+            this.$store.commit("setGoogleImageApiKey", this.settings.google_image_api_key);
+            window.saveConfig("imageTargetLang", this.settings.image_target_lang);
+            this.$store.commit("setImageTargetLang", this.settings.image_target_lang);
+
           // console.log("Saving settings:", this.settings);
           this.$message.success(this.$t("settingsSaved"));
           bus.$emit("close-drawer");
@@ -218,6 +245,8 @@ export default {
     this.settings.api_address = this.$store.state.api_address
 
     this.settings.api_type = this.$store.state.api_type // 添加这行来加载保存的API类型
+    
+    this.settings.api_key = this.$store.state.api_key
 
     this.settings.api_token = this.$store.state.api_token // 添加这行来加载保存的API令牌
 
@@ -230,6 +259,9 @@ export default {
       this.settings.openai_model_type = this.$store.state.openai_model_type;
       this.settings.openai_custom_model = this.$store.state.openai_custom_model;
     }
+
+    this.settings.google_image_api_key = this.$store.state.google_image_api_key;
+    this.settings.image_target_lang = this.$store.state.image_target_lang;
   }
 };
 </script>

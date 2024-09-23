@@ -19,6 +19,10 @@ export default new Vuex.Store({
         openai_endpoint_type: 'official',
         openai_model_type: 'gpt-3.5-turbo',
         deepl_api_token: "",
+        translated_image_text: "",
+        google_image_api_key: "", // Add this line
+        image_target_lang: "zh", // 修改这里
+        // target_lang: "zh", // Add this line
     },
     getters: {},
     mutations: {
@@ -69,6 +73,18 @@ export default new Vuex.Store({
         },
         setDeeplApiToken(state, token) {
             state.deepl_api_token = token;
+        },
+        setTranslatedImageText(state, text) {
+            state.translated_image_text = text;
+        },
+        setGoogleImageApiKey(state, key) {
+            state.google_image_api_key = key;
+        },
+        setImageTargetLang(state, lang) { // 添加这个突变
+            state.image_target_lang = lang;
+        },
+        setTargetLang(state, lang) {
+            state.target_lang = lang;
         },
     },
     actions: {},
