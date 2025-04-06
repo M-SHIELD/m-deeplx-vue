@@ -85,13 +85,16 @@
     >
       <settingEditor></settingEditor>
     </el-drawer>
-    <!-- Add a button to capture and translate image -->
-    <el-button  type="primary" @click="captureAndTranslate">{{ $t('captureAndTranslate') }}</el-button>
-    <el-button  type="primary" @click="loadPictureText">{{ $t('loadPictureText') }}</el-button>
+    <!-- 智能截图翻译按钮 -->
+    <el-button type="primary" @click="captureAndTranslate" :loading="loading">{{ $t('captureAndTranslate') }}</el-button>
+    <el-button type="primary" @click="simulateInput">{{ $t('simulateInput') }}</el-button>
+    <el-button type="primary" @click="loadLastTranslation">{{ $t('loadPictureText') }}</el-button>
     
-    <!-- <div v-if="this.translatedText">
+    <!-- 显示翻译结果区域 -->
+    <div v-if="translatedText" style="margin-top: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+      <h3>{{ $t('translationResult') }}:</h3>
       <p>{{ translatedText }}</p>
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -252,7 +255,7 @@ export default {
       this.$set(this.form, "api_key", store.state.api_key)
       this.$set(this.form, "openai_api_address", store.state.openai_api_address)
       this.$set(this.form, "openai_api_token", store.state.openai_api_token)
-      this.$set(this.form, "openai_model", store.state.openai_model)
+      this.$set(this.form, "openai_model_type", store.state.openai_model_type)
       this.$set(this.form, "openai_custom_model", store.state.openai_custom_model)
       this.$set(this.form, "deepl_api_token", store.state.deepl_api_token)
 
@@ -302,8 +305,14 @@ export default {
           response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${this.form.source_lang}&tl=${this.form.target_lang}&dt=t&q=${encodeURIComponent(this.form.text)}`);
         } else if (this.form.api_type === 'openai') {
           
-          const model = this.form.openai_custom_model || this.form.openai_model;
-          const prompt = `Translate the following text from ${this.form.source_lang} to ${this.form.target_lang}:\n\n${this.form.text}\n\nTranslation:`;
+          let model;
+          if (this.form.openai_model_type === 'custom') {
+            model = this.form.openai_custom_model;
+          } else {
+            model = this.form.openai_model_type;
+          }
+          
+          const prompt = `Translate the following text from ${this.form.source_lang} to ${this.form.target_lang}. Maintain the exact same formatting, including paragraphs, line breaks, and punctuation:\n\n${this.form.text}`;
           response = await fetch(`${this.form.openai_api_address}/v1/chat/completions`, {
             method: "POST",
             headers: {
@@ -313,11 +322,11 @@ export default {
             body: JSON.stringify({
               model: model,
               messages: [
-                {role: "system", content: "You are a professional translator."},
+                {role: "system", content: "You are a professional translator. Translate the text accurately while preserving the exact original format, including paragraphs, line breaks, and punctuation. Only return the translated text without any additional explanations or metadata."},
                 {role: "user", content: prompt}
               ],
-              temperature: 0.3,
-              max_tokens: 1000
+              temperature: 0.2,
+              max_tokens: 2000
             })
           });
         } else if (this.form.api_type === 'deepl_official') {
@@ -342,10 +351,23 @@ export default {
           this.result = data.choices[0].message.content.trim();
         } else if (this.form.api_type === 'google_api' && data.data && data.data.translations) {
           this.result = data.data.translations[0].translatedText;
-        } else if (this.form.api_type === 'google_free' && data[0] && data[0][0] && data[0][0][0]) {
-          this.result = data[0][0][0];
+        } else if (this.form.api_type === 'google_free' && data[0]) {
+          // 处理谷歌免费翻译API的响应
+          let translatedText = '';
+          // 将多个翻译片段拼接在一起以保留格式
+          for (let i = 0; i < data[0].length; i++) {
+            if (data[0][i][0]) {
+              translatedText += data[0][i][0];
+            }
+          }
+          this.result = translatedText;
         } else if (this.form.api_type === 'openai' && data.choices && data.choices.length > 0) {
-          this.result = data.choices[0].message.content.trim();
+          // 移除可能的前缀，如"Translation:"
+          let translatedText = data.choices[0].message.content.trim();
+          if (translatedText.startsWith("Translation:")) {
+            translatedText = translatedText.substring("Translation:".length).trim();
+          }
+          this.result = translatedText;
         } else if (this.form.api_type === 'deepl_official' && data.translations && data.translations.length > 0) {
           this.result = data.translations[0].text;
         } else {
@@ -420,6 +442,15 @@ export default {
 
       window.mcopyHideEnter(this.result)
     },
+    simulateInput() {
+      // 直接调用utools的输入功能，将输入框内容输出
+      if (this.$store.state.tstext && this.$store.state.tstext.length > 0) {
+        window.mcopyHideEnter(this.$store.state.tstext);
+        this.$message.success(this.$t('inputSuccessful'));
+      } else {
+        this.$message.warning(this.$t('noInputText'));
+      }
+    },
     saveConfig() {
 
       window.saveConfig(this.form.api_address);
@@ -447,13 +478,134 @@ export default {
         }
     },
     async captureAndTranslate() {
-        const targetLang = this.$store.state.image_target_lang;
+        let targetLang = this.$store.state.image_target_lang;
         const googleImageApiKey = this.$store.state.google_image_api_key;
-        await window.captureAndTranslateImage(targetLang, googleImageApiKey);
         
+        // 清空之前的翻译结果
+        this.translatedText = null;
+        this.result = "";
+        
+        // 如果没有设置目标语言，则使用翻译功能的目标语言
+        if (!targetLang) {
+            targetLang = this.$store.state.target_lang.toLowerCase();
+            if (targetLang === "auto") {
+                // 如果目标语言是自动检测，则默认使用英语
+                targetLang = "en";
+            }
+        }
+        
+        this.loading = true;
+        try {
+            // 等待截图翻译完成并获取结果
+            console.log("开始截图翻译，目标语言:", targetLang);
+            const result = await window.captureAndTranslateImage(targetLang, googleImageApiKey);
+            console.log("截图翻译结果:", JSON.stringify(result));
+            
+            if (result && result.success) {
+                // 确保translatedText不为空
+                if (!result.translatedText || result.translatedText.trim() === "") {
+                    console.error("翻译结果为空字符串");
+                    this.$message.error(this.$t('translationFailed') + ": 翻译结果为空");
+                    return;
+                }
+                
+                // 直接显示翻译结果
+                console.log("设置翻译文本:", result.translatedText);
+                this.translatedText = result.translatedText;
+                this.result = result.translatedText;
+                console.log("设置翻译结果后的状态:", {
+                    translatedText: this.translatedText,
+                    result: this.result
+                });
+                
+                // 根据翻译情况显示不同的提示
+                if (result.isRoundTripTranslation) {
+                    // 如果是通过中介语言回译的情况
+                    this.$message.success(`${this.$t('translationSuccessful')} (${this.$t('viaIntermediateLanguage')}), ${this.$t('sourceLanguage')}: ${result.detectedSourceLanguage}`);
+                    console.log("中介翻译中间文本:", result.intermediateText);
+                } else if (result.translationFallback) {
+                    // 如果翻译回退到显示原文
+                    this.$message.info(this.$t('sameLanguageDetected'));
+                } else if (result.detectedSourceLanguage && 
+                    ((result.detectedSourceLanguage === targetLang) || 
+                    (result.detectedSourceLanguage.startsWith("zh") && targetLang.startsWith("zh")) ||
+                    (result.detectedSourceLanguage.startsWith("en") && targetLang.startsWith("en")))) {
+                    this.$message.info(this.$t('sameLanguageDetected'));
+                } else {
+                    this.$message.success(`${this.$t('translationSuccessful')}, ${this.$t('sourceLanguage')}: ${result.detectedSourceLanguage}`);
+                }
+                
+                // 如果原文不为空且与当前输入文本不同，将原文设置到输入框
+                if (result.originalText && this.$store.state.tstext !== result.originalText) {
+                    this.$store.commit('settstext', result.originalText);
+                }
+                
+                // 强制刷新组件
+                this.$nextTick(() => {
+                    console.log("强制刷新前的状态:", {
+                        translatedText: this.translatedText,
+                        result: this.result
+                    });
+                    this.forceUpdate();
+                    console.log("强制刷新后的状态");
+                });
+            } else {
+                // 显示详细的错误信息
+                let errorMsg = result ? result.error : this.$t('translationFailed');
+                
+                if (result && result.apiResponse) {
+                    console.error("API错误详情:", result.apiResponse);
+                    errorMsg += " - API错误"; 
+                }
+                
+                this.$message.error(errorMsg);
+                
+                // 如果有原始文本，仍然显示它
+                if (result && result.originalText) {
+                    this.$store.commit('settstext', result.originalText);
+                }
+            }
+        } catch (error) {
+            console.error("截图翻译出错:", error);
+            this.$message.error("截图翻译出错: " + (error.message || error));
+        } finally {
+            this.loading = false;
+        }
     },
     forceUpdate() {
+      console.log("强制刷新组件");
       this.$forceUpdate();
+    },
+    loadLastTranslation() {
+      try {
+        const result = window.utools.dbStorage.getItem("img_tred");
+        console.log("加载翻译结果:", result);
+        
+        if (result && result.success) {
+          // 输出result
+          console.log("设置翻译文本:", result.translatedText);
+          this.translatedText = result.translatedText;
+          this.result = result.translatedText;
+          
+          if (result.isRoundTripTranslation) {
+            this.$message.success(`${this.$t('translationSuccessful')} (${this.$t('viaIntermediateLanguage')}), ${this.$t('sourceLanguage')}: ${result.detectedSourceLanguage}`);
+          } else if (result.translationFallback) {
+            this.$message.info(this.$t('sameLanguageDetected'));
+          } else {
+            this.$message.success(`${this.$t('translationSuccessful')}, ${this.$t('sourceLanguage')}: ${result.detectedSourceLanguage}`);
+          }
+          
+          // 强制刷新组件
+          this.$nextTick(() => {
+            this.forceUpdate();
+          });
+        } else {
+          this.$message.error(result ? result.error : this.$t('translationFailed'));
+        }
+      } catch (error) {
+        console.error("加载翻译结果失败:", error);
+        this.$message.error(this.$t('translationFailed') + ": " + error.message);
+      }
     }
   },
   mounted() {
@@ -493,6 +645,18 @@ export default {
 
     loadSetting();
 
+    // 尝试加载最近一次的截图翻译结果
+    try {
+      const lastResult = window.utools.dbStorage.getItem("img_tred");
+      console.log("加载最近一次翻译结果:", lastResult);
+      if (lastResult && lastResult.success && lastResult.translatedText) {
+        this.translatedText = lastResult.translatedText;
+        this.result = lastResult.translatedText;
+        console.log("已加载最近一次翻译结果");
+      }
+    } catch (error) {
+      console.error("加载最近一次翻译结果失败:", error);
+    }
 
     // this.form.api_address = apiaddr
     // Listen for the close-drawer event from the event bus
@@ -501,6 +665,13 @@ export default {
       this.showDrawer = false;
     });
 
+  },
+  updated() {
+    // 当组件更新后，检查翻译结果状态
+    console.log("组件已更新，当前状态:", {
+      translatedText: this.translatedText,
+      result: this.result
+    });
   }
 };
 

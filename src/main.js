@@ -73,10 +73,14 @@ const messages = {
         deepseekApiDocs: 'DeepSeek API Documentation',
         googleApiDocs: 'Google Translate API Documentation',
         getDeepLApiToken: 'Get DeepL API Token',
-        captureAndTranslate: 'Capture and Translate Image',
+        captureAndTranslate: 'Smart Image Translation',
         googleImageApiKey: 'Google Image API Key',
         enterGoogleImageApiKey: 'Enter Google Image API Key',
-        
+        simulateInput: 'Simulate Keyboard Output',
+        inputSuccessful: 'Output successful',
+        noInputText: 'No text to output',
+        sameLanguageDetected: 'Text in the same language detected, displaying directly',
+        viaIntermediateLanguage: 'via intermediate language',
     },
     zh: {
         translationFunction: '翻译功能',
@@ -143,11 +147,16 @@ const messages = {
         deepseekApiDocs: 'DeepSeek API文档',
         googleApiDocs: 'Google翻译API文档',
         getDeepLApiToken: '获取DeepL API令牌',
-        captureAndTranslate: '截图并翻译图片',
+        captureAndTranslate: '智能截图翻译',
         loadPictureText: '加载图片翻译结果',
         googleImageApiKey: '谷歌图片API密钥',
         enterGoogleImageApiKey: '输入谷歌图片API密钥',
         imageTargetLanguage: '图片翻译目标语言',
+        simulateInput: '模拟键盘输出',
+        inputSuccessful: '输出成功',
+        noInputText: '没有可输出的文本',
+        sameLanguageDetected: '检测到文本与目标语言相同，已直接显示文本',
+        viaIntermediateLanguage: '通过中间语言翻译',
     }
 }
 
