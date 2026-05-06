@@ -101,13 +101,14 @@
 <script>
 import store from '@/store'
 
-window.utools.onPluginEnter(({code, type, payload}) => {
-  console.log('用户进入插件应用', code, type, payload)
-  if (type === "over") {
-
-    store.commit('settstext', payload)
-  }
-})
+if (window.pluginRuntime && typeof window.pluginRuntime.onPluginEnter === 'function') {
+  window.pluginRuntime.onPluginEnter(({code, type, payload}) => {
+    console.log('用户进入插件应用', code, type, payload)
+    if (type === "over") {
+      store.commit('settstext', payload)
+    }
+  })
+}
 
 
 // Import the SettingEditor.vue view
@@ -466,7 +467,7 @@ export default {
       store.commit("settargetLanguage", temp)
     },
     loadPictureText(){
-      const result = window.utools.dbStorage.getItem("img_tred");
+      const result = window.getConfig("img_tred");
         if (result && result.success) {
           // 输出result
           this.translatedText = result.translatedText;
@@ -578,7 +579,7 @@ export default {
     },
     loadLastTranslation() {
       try {
-        const result = window.utools.dbStorage.getItem("img_tred");
+        const result = window.getConfig("img_tred");
         console.log("加载翻译结果:", result);
         
         if (result && result.success) {
@@ -647,7 +648,7 @@ export default {
 
     // 尝试加载最近一次的截图翻译结果
     try {
-      const lastResult = window.utools.dbStorage.getItem("img_tred");
+      const lastResult = window.getConfig("img_tred");
       console.log("加载最近一次翻译结果:", lastResult);
       if (lastResult && lastResult.success && lastResult.translatedText) {
         this.translatedText = lastResult.translatedText;

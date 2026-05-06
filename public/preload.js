@@ -1,12 +1,230 @@
 /**
+ * 获取当前可用的插件运行时。
+ * 优先使用 uTools，其次回退到 ZTools。
+ * @returns {{ platform: string, api: any }}
+ */
+function getRuntimeContext() {
+    if (window.utools && typeof window.utools === "object") {
+        return { platform: "utools", api: window.utools };
+    }
+
+    if (window.ztools && typeof window.ztools === "object") {
+        return { platform: "ztools", api: window.ztools };
+    }
+
+    return { platform: "unknown", api: null };
+}
+
+/**
+ * 在 ZTools 环境下补一个 window.utools 别名，降低旧业务代码的改造成本。
+ * @returns {{ platform: string, api: any }}
+ */
+function ensureRuntimeAlias() {
+    const runtime = getRuntimeContext();
+
+    if (!window.utools && runtime.platform === "ztools") {
+        window.utools = runtime.api;
+    }
+
+    return runtime;
+}
+
+/**
+ * 获取当前运行时 API。
+ * @returns {any}
+ */
+function getRuntimeApi() {
+    return ensureRuntimeAlias().api;
+}
+
+/**
+ * 获取运行时的简化存储接口。
+ * @returns {{ setItem: Function, getItem: Function, removeItem: Function } | null}
+ */
+function getRuntimeStorage() {
+    const runtimeApi = getRuntimeApi();
+    return runtimeApi && runtimeApi.dbStorage ? runtimeApi.dbStorage : null;
+}
+
+function storageSetItem(key, value) {
+    const storage = getRuntimeStorage();
+    if (!storage) {
+        console.warn("dbStorage 不可用，写入已跳过:", key);
+        return null;
+    }
+
+    return storage.setItem(key, value);
+}
+
+function storageGetItem(key) {
+    const storage = getRuntimeStorage();
+    if (!storage) {
+        console.warn("dbStorage 不可用，读取已跳过:", key);
+        return null;
+    }
+
+    return storage.getItem(key);
+}
+
+function storageRemoveItem(key) {
+    const storage = getRuntimeStorage();
+    if (!storage) {
+        console.warn("dbStorage 不可用，删除已跳过:", key);
+        return null;
+    }
+
+    return storage.removeItem(key);
+}
+
+function showRuntimeNotification(message) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.showNotification === "function") {
+        return runtimeApi.showNotification(message);
+    }
+
+    console.warn("showNotification 不可用:", message);
+    return null;
+}
+
+function openExternalUrl(url) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.shellOpenExternal === "function") {
+        return runtimeApi.shellOpenExternal(url);
+    }
+
+    throw new Error("当前运行时不支持打开外部链接");
+}
+
+function copyRuntimeText(text) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.copyText === "function") {
+        return runtimeApi.copyText(text);
+    }
+
+    throw new Error("当前运行时不支持复制文本");
+}
+
+function hideRuntimeMainWindow() {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.hideMainWindow === "function") {
+        return runtimeApi.hideMainWindow();
+    }
+
+    throw new Error("当前运行时不支持隐藏主窗口");
+}
+
+function typeRuntimeString(text) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.hideMainWindowTypeString === "function") {
+        return runtimeApi.hideMainWindowTypeString(text);
+    }
+
+    throw new Error("当前运行时不支持模拟键盘输入");
+}
+
+function registerPluginEnter(callback) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.onPluginEnter === "function") {
+        return runtimeApi.onPluginEnter(callback);
+    }
+
+    console.warn("onPluginEnter 不可用");
+    return null;
+}
+
+function registerPluginReady(callback) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.onPluginReady === "function") {
+        return runtimeApi.onPluginReady(callback);
+    }
+
+    if (runtimeApi && typeof runtimeApi.onPluginEnter === "function") {
+        return runtimeApi.onPluginEnter(callback);
+    }
+
+    console.warn("onPluginReady 不可用");
+    return null;
+}
+
+function captureRuntimeScreen(callback) {
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi && typeof runtimeApi.screenCapture === "function") {
+        return runtimeApi.screenCapture(callback);
+    }
+
+    throw new Error("当前运行时不支持截图");
+}
+
+window.getRuntimePlatform = function () {
+    return ensureRuntimeAlias().platform;
+}
+
+window.getPluginRuntime = function () {
+    return getRuntimeApi();
+}
+
+window.pluginRuntime = {
+    getPlatform() {
+        return ensureRuntimeAlias().platform;
+    },
+    isUTools() {
+        return ensureRuntimeAlias().platform === "utools";
+    },
+    isZTools() {
+        return ensureRuntimeAlias().platform === "ztools";
+    },
+    getApi() {
+        return getRuntimeApi();
+    },
+    dbStorage: {
+        setItem(key, value) {
+            return storageSetItem(key, value);
+        },
+        getItem(key) {
+            return storageGetItem(key);
+        },
+        removeItem(key) {
+            return storageRemoveItem(key);
+        }
+    },
+    showNotification(message) {
+        return showRuntimeNotification(message);
+    },
+    shellOpenExternal(url) {
+        return openExternalUrl(url);
+    },
+    copyText(text) {
+        return copyRuntimeText(text);
+    },
+    hideMainWindow() {
+        return hideRuntimeMainWindow();
+    },
+    hideMainWindowTypeString(text) {
+        return typeRuntimeString(text);
+    },
+    screenCapture(callback) {
+        return captureRuntimeScreen(callback);
+    },
+    onPluginEnter(callback) {
+        return registerPluginEnter(callback);
+    },
+    onPluginReady(callback) {
+        return registerPluginReady(callback);
+    }
+}
+
+ensureRuntimeAlias();
+
+/**
  * 打开默认浏览器加载指定连接
  * @param url 链接
  * @returns {Promise<void>}
  */
 window.oepnUrl = async function (url) {
-
-    window.utools.shellOpenExternal(url)
+    return openExternalUrl(url)
 }
+
+window.openUrl = window.oepnUrl
 
 
 /**
@@ -15,8 +233,8 @@ window.oepnUrl = async function (url) {
  * @param v
  */
 window.saveConfig = function (k,v) {
-    window.utools.dbStorage.setItem(k, v)
-    console.log(k+":"+window.utools.dbStorage.getItem(k)+" 保存")
+    storageSetItem(k, v)
+    console.log(k+":"+storageGetItem(k)+" 保存")
 }
 
 /**
@@ -25,27 +243,27 @@ window.saveConfig = function (k,v) {
  * @returns {*} v
  */
 window.getConfig = function (k) {
-    return window.utools.dbStorage.getItem(k)
+    return storageGetItem(k)
 }
 
 // 复制
 window.mcopy = function (text) {
-    window.utools.copyText(text)
+    copyRuntimeText(text)
 }
 
 
 //复制且隐藏
 window.mcopyHide = function (text) {
-    window.utools.copyText(text)
-    window.utools.hideMainWindow()
+    copyRuntimeText(text)
+    hideRuntimeMainWindow()
 
 }
 
 //复制且输入
 window.mcopyHideEnter = function (text) {
-    window.utools.copyText(text)
-    window.utools.hideMainWindow()
-    window.utools.hideMainWindowTypeString(text)
+    copyRuntimeText(text)
+    hideRuntimeMainWindow()
+    typeRuntimeString(text)
 }
 
 /**
@@ -54,14 +272,14 @@ window.mcopyHideEnter = function (text) {
  */
 window.captureAndTranslateImage = async function (targetLang, googleImageApiKey) {
     if (!googleImageApiKey) {
-        window.utools.showNotification("请先设置谷歌图片API密钥");
+        showRuntimeNotification("请先设置谷歌图片API密钥");
         return { success: false, error: "请先设置谷歌图片API密钥" };
     }
 
     // 创建一个Promise来封装截图和翻译过程
     return new Promise((resolve) => {
         // 调用 uTools 截图功能
-        window.utools.screenCapture(async (base64Str) => {
+        captureRuntimeScreen(async (base64Str) => {
             if (!base64Str) {
                 console.error("截图失败");
                 resolve({ success: false, error: "截图失败" });
@@ -209,8 +427,8 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
                                                 intermediateText: intermediateText
                                             };
                                             
-                                            window.utools.dbStorage.setItem("img_tred", result);
-                                            window.utools.showNotification("通过英语作为中介进行了翻译");
+                                            storageSetItem("img_tred", result);
+                                            showRuntimeNotification("通过英语作为中介进行了翻译");
                                             resolve(result);
                                             return;
                                         } else {
@@ -233,8 +451,8 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
                                     translationFallback: true
                                 };
                                 
-                                window.utools.dbStorage.setItem("img_tred", result);
-                                window.utools.showNotification("检测到文本与目标语言相同，显示原文");
+                                storageSetItem("img_tred", result);
+                                showRuntimeNotification("检测到文本与目标语言相同，显示原文");
                                 resolve(result);
                                 return;
                             } else {
@@ -246,8 +464,8 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
                                     originalText: detectedText
                                 };
                                 
-                                window.utools.dbStorage.setItem("img_tred", result);
-                                window.utools.showNotification("检测到文本与目标语言相同，显示原文");
+                                storageSetItem("img_tred", result);
+                                showRuntimeNotification("检测到文本与目标语言相同，显示原文");
                                 resolve(result);
                                 return;
                             }
@@ -261,8 +479,8 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
                                 originalText: detectedText
                             };
                             
-                            window.utools.dbStorage.setItem("img_tred", result);
-                            window.utools.showNotification("检测到文本与目标语言相同，显示原文");
+                            storageSetItem("img_tred", result);
+                            showRuntimeNotification("检测到文本与目标语言相同，显示原文");
                             resolve(result);
                             return;
                         }
@@ -337,13 +555,13 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
                         
                         // 存储结果以供后续使用
                         try {
-                            window.utools.dbStorage.setItem("img_tred", result);
+                            storageSetItem("img_tred", result);
                             console.log("结果已保存到数据库");
                         } catch (error) {
                             console.error("保存结果到数据库失败:", error);
                         }
                         
-                        window.utools.showNotification("翻译成功");
+                        showRuntimeNotification("翻译成功");
                         
                         // 直接在控制台打印最终返回的结果，便于调试
                         console.log("最终返回的结果:", JSON.stringify(result));
@@ -367,7 +585,7 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
                 }
             } catch (error) {
                 console.error("翻译失败", error);
-                window.utools.showNotification("翻译失败: " + error.message);
+                showRuntimeNotification("翻译失败: " + error.message);
                 resolve({
                     success: false,
                     error: error.message
@@ -377,6 +595,8 @@ window.captureAndTranslateImage = async function (targetLang, googleImageApiKey)
     });
 }
 
-window.utools.onPluginReady(() => {
-  loadSetting();
+registerPluginReady(() => {
+    if (typeof window.loadSetting === "function") {
+        window.loadSetting();
+    }
 });

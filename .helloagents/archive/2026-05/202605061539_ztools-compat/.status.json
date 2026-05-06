@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "completed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "pending": 0,
+  "uncertain": 0,
+  "total": 6,
+  "done": 6,
+  "percent": 100,
+  "current": "已归档到 archive/2026-05",
+  "updated_at": "2026-05-06 15:52:00"
+}
