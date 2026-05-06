@@ -102,11 +102,14 @@
 import store from '@/store'
 
 if (window.pluginRuntime && typeof window.pluginRuntime.onPluginEnter === 'function') {
-  window.pluginRuntime.onPluginEnter((action) => {
+  window.pluginRuntime.onPluginEnter(async (action) => {
     const { code, type, payload } = action
-    console.log('用户进入插件应用', code, type, payload)
+    console.log('用户进入插件应用', code, type, payload, action.inputState)
 
-    const enterText = window.pluginRuntime.getEnterText(action)
+    const enterText = typeof window.pluginRuntime.resolveEnterText === 'function'
+      ? await window.pluginRuntime.resolveEnterText(action)
+      : window.pluginRuntime.getEnterText(action)
+
     if (enterText) {
       store.commit('settstext', enterText)
     }

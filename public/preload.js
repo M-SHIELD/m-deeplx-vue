@@ -4,12 +4,12 @@
  * @returns {{ platform: string, api: any }}
  */
 function getRuntimeContext() {
-    if (window.utools && typeof window.utools === "object") {
-        return { platform: "utools", api: window.utools };
-    }
-
     if (window.ztools && typeof window.ztools === "object") {
         return { platform: "ztools", api: window.ztools };
+    }
+
+    if (window.utools && typeof window.utools === "object") {
+        return { platform: "utools", api: window.utools };
     }
 
     return { platform: "unknown", api: null };
@@ -149,6 +149,171 @@ function extractPluginEnterText(action) {
     return "";
 }
 
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+async function readNavigatorClipboardText() {
+    if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
+        return "";
+    }
+
+    try {
+        const text = await navigator.clipboard.readText();
+        return typeof text === "string" && text.trim() ? text : "";
+    } catch (error) {
+        console.warn("[PluginRuntime][Enter] navigator clipboard read failed", error);
+        return "";
+    }
+}
+
+function getClipboardTextFromItem(item) {
+    if (!item || item.type !== "text") {
+        return "";
+    }
+
+    if (typeof item.content === "string" && item.content.trim()) {
+        return item.content;
+    }
+
+    if (typeof item.text === "string" && item.text.trim()) {
+        return item.text;
+    }
+
+    if (typeof item.data === "string" && item.data.trim()) {
+        return item.data;
+    }
+
+    return "";
+}
+
+async function readZToolsLatestClipboardText(runtimeApi) {
+    const clipboard = runtimeApi && runtimeApi.clipboard;
+    if (!clipboard || typeof clipboard.getHistory !== "function") {
+        console.warn("[PluginRuntime][Enter] ztools clipboard history unavailable");
+        return "";
+    }
+
+    try {
+        const history = await clipboard.getHistory(1, 1);
+        const item = history && Array.isArray(history.items) ? history.items[0] : null;
+        const itemText = getClipboardTextFromItem(item);
+        if (!itemText) {
+            console.warn("[PluginRuntime][Enter] clipboard history has no text item", {
+                hasHistory: !!history,
+                itemType: item && item.type,
+                itemKeys: item ? Object.keys(item) : []
+            });
+            return "";
+        }
+
+        return itemText;
+    } catch (error) {
+        console.warn("[PluginRuntime][Enter] clipboard fallback failed", error);
+        return "";
+    }
+}
+
+async function readCurrentClipboardText(runtimeApi) {
+    return await readNavigatorClipboardText()
+        || await readZToolsLatestClipboardText(runtimeApi);
+}
+
+async function captureSelectedTextFromPreviousWindow(runtimeApi, previousClipboardText) {
+    if (!runtimeApi || typeof runtimeApi.hideMainWindow !== "function") {
+        return "";
+    }
+
+    if (typeof runtimeApi.simulateKeyboardTap !== "function") {
+        console.warn("[PluginRuntime][Enter] simulateKeyboardTap unavailable");
+        return "";
+    }
+
+    try {
+        await runtimeApi.hideMainWindow(true);
+        await sleep(260);
+
+        const modifier = runtimeApi.isMacOs && runtimeApi.isMacOs() ? "meta" : "ctrl";
+        runtimeApi.simulateKeyboardTap("c", modifier);
+
+        let capturedText = "";
+        for (let i = 0; i < 10; i += 1) {
+            await sleep(100);
+            capturedText = await readCurrentClipboardText(runtimeApi);
+            if (capturedText && capturedText !== previousClipboardText) {
+                break;
+            }
+        }
+
+        if (!capturedText || capturedText === previousClipboardText) {
+            console.warn("[PluginRuntime][Enter] active copy produced no new text", {
+                hasText: !!capturedText,
+                sameAsPrevious: !!capturedText && capturedText === previousClipboardText
+            });
+            return "";
+        }
+
+        return capturedText;
+    } catch (error) {
+        console.warn("[PluginRuntime][Enter] active copy failed", error);
+        return "";
+    } finally {
+        if (typeof runtimeApi.showMainWindow === "function") {
+            await sleep(30);
+            await runtimeApi.showMainWindow();
+        }
+    }
+}
+
+async function resolvePluginEnterText(action) {
+    const enterText = extractPluginEnterText(action);
+    if (enterText) {
+        console.log("[PluginRuntime][Enter] use-enter-payload", {
+            type: action && action.type,
+            length: enterText.length
+        });
+        return enterText;
+    }
+
+    const runtime = ensureRuntimeAlias();
+    if (!runtime.api || runtime.platform !== "ztools") {
+        return "";
+    }
+
+    if (!action || action.type !== "text") {
+        return "";
+    }
+
+    const directClipboardText = await readNavigatorClipboardText();
+    const historyClipboardText = directClipboardText ? "" : await readZToolsLatestClipboardText(runtime.api);
+    const previousClipboardText = directClipboardText || historyClipboardText;
+    const capturedText = await captureSelectedTextFromPreviousWindow(runtime.api, previousClipboardText);
+    if (capturedText) {
+        console.log("[PluginRuntime][Enter] fallback-to-active-copy", {
+            length: capturedText.length
+        });
+        return capturedText;
+    }
+
+    if (directClipboardText) {
+        console.log("[PluginRuntime][Enter] fallback-to-navigator-clipboard", {
+            length: directClipboardText.length
+        });
+        return directClipboardText;
+    }
+
+    if (historyClipboardText) {
+        console.log("[PluginRuntime][Enter] fallback-to-clipboard-history", {
+            length: historyClipboardText.length
+        });
+        return historyClipboardText;
+    }
+
+    return "";
+}
+
 function registerPluginReady(callback) {
     const runtimeApi = getRuntimeApi();
     if (runtimeApi && typeof runtimeApi.onPluginReady === "function") {
@@ -230,6 +395,9 @@ window.pluginRuntime = {
     },
     getEnterText(action) {
         return extractPluginEnterText(action);
+    },
+    async resolveEnterText(action) {
+        return resolvePluginEnterText(action);
     }
 }
 

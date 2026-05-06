@@ -18,6 +18,7 @@
 | `window.pluginRuntime.getPlatform()` | 无 | `string` | 返回当前平台：`utools` / `ztools` / `unknown` |
 | `window.pluginRuntime.onPluginEnter(cb)` | `cb: function` | `void` | 统一监听插件进入事件 |
 | `window.pluginRuntime.getEnterText(action)` | `action: object` | `string` | 从插件进入事件中提取选中文本，兼容 `payload` 与 `inputState.pastedText` |
+| `window.pluginRuntime.resolveEnterText(action)` | `action: object` | `Promise<string>` | 在 ZTools 下额外尝试主动复制原窗口选中文本并回退读取剪贴板 |
 | `window.mcopy(text)` | `text: string` | `void` | 复制文本 |
 | `window.mcopyHide(text)` | `text: string` | `void` | 复制文本并隐藏主窗口 |
 | `window.mcopyHideEnter(text)` | `text: string` | `void` | 复制文本、隐藏主窗口并模拟输入 |
@@ -52,13 +53,13 @@
 
 ### 平台别名兼容
 **条件**: 插件运行在 ZTools 中。  
-**行为**: preload 在检测到 `window.ztools` 时补充 `window.utools` 别名，并通过 `pluginRuntime` 暴露统一接口。  
+**行为**: preload 在检测到 `window.ztools` 时补充 `window.utools` 别名，并在平台识别时优先保留 ZTools 身份，再通过 `pluginRuntime` 暴露统一接口。  
 **结果**: 旧业务调用可平滑迁移，新业务统一走兼容层。
 
 ### 插件进入文本归一化
 **条件**: 插件通过 uTools `over` 模式或 ZTools 全局快捷键上下文被唤起。  
-**行为**: 兼容层优先读取 `payload` 字符串，其次回退到 `inputState.pastedText`。  
-**结果**: 业务层可统一获取外部选中文本，而不需要关心宿主平台参数结构差异。
+**行为**: 兼容层优先读取 `payload` 字符串，其次回退到 `inputState.pastedText`；若 ZTools 仍未透传文本，则隐藏主窗口、恢复原窗口、模拟系统复制，再读取系统剪贴板或 ZTools 剪贴板历史。  
+**结果**: 业务层可统一获取外部文本，而不需要关心宿主平台参数结构差异；若原窗口拒绝复制或系统安全策略阻止剪贴板读取，则会记录失败原因日志。
 
 ## 依赖关系
 

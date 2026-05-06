@@ -5,6 +5,12 @@ type PluginEnterPayload = {
   type?: string
   payload?: any
   option?: any
+  inputState?: {
+    searchQuery?: string
+    pastedImage?: any
+    pastedFiles?: any
+    pastedText?: string | null
+  }
 }
 
 type PluginDbStorage = {
@@ -28,6 +34,7 @@ type PluginRuntimeBridge = {
   onPluginEnter: (callback: (payload: PluginEnterPayload) => void) => any
   onPluginReady: (callback: (payload: PluginEnterPayload) => void) => any
   getEnterText: (payload: PluginEnterPayload) => string
+  resolveEnterText: (payload: PluginEnterPayload) => Promise<string>
 }
 
 declare global {

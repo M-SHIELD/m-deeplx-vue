@@ -50,9 +50,13 @@
 | 2026-05-06 17:06 | 方案包创建 | completed | 已生成 `202605061706_ztools-selected-text` |
 | 2026-05-06 17:07 | 1.1 / 2.1 | completed | 已兼容 `payload` 与 `inputState.pastedText` 两种进入文本来源 |
 | 2026-05-06 17:08 | 3.1 | completed | `npm run lint` 通过，知识库已同步 |
+| 2026-05-06 17:25 | 追加修复 | completed | 用户反馈复制/选中两条链路均失败后，改为 ZTools 下主动恢复原窗口、模拟复制并读取剪贴板 |
+| 2026-05-06 17:30 | 平台识别修复 | completed | 修正 `window.utools` 兼容别名导致 ZTools 被误判为 uTools 的问题 |
 
 ---
 
 ## 执行备注
 
 - ZTools 快捷键启动参数由宿主构造，文本可能不在 `payload` 顶层，而在 `inputState.pastedText`。
+- ZTools “全局快捷键直启插件”链路不会像超级面板那样主动模拟复制；插件侧现在补齐了类似策略：隐藏主窗口、恢复原窗口、模拟复制、读取剪贴板、再显示主窗口。
+- 若原窗口不响应 `Ctrl+C` / `Command+C` 或系统禁止剪贴板读取，兼容层会输出 `[PluginRuntime][Enter]` 失败原因日志。
