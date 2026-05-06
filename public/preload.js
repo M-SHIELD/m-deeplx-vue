@@ -132,6 +132,23 @@ function registerPluginEnter(callback) {
     return null;
 }
 
+function extractPluginEnterText(action) {
+    if (!action || typeof action !== "object") {
+        return "";
+    }
+
+    if (typeof action.payload === "string" && action.payload.trim()) {
+        return action.payload;
+    }
+
+    const inputState = action.inputState || (action.payload && action.payload.inputState);
+    if (inputState && typeof inputState.pastedText === "string" && inputState.pastedText.trim()) {
+        return inputState.pastedText;
+    }
+
+    return "";
+}
+
 function registerPluginReady(callback) {
     const runtimeApi = getRuntimeApi();
     if (runtimeApi && typeof runtimeApi.onPluginReady === "function") {
@@ -210,6 +227,9 @@ window.pluginRuntime = {
     },
     onPluginReady(callback) {
         return registerPluginReady(callback);
+    },
+    getEnterText(action) {
+        return extractPluginEnterText(action);
     }
 }
 

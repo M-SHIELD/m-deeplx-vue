@@ -102,10 +102,13 @@
 import store from '@/store'
 
 if (window.pluginRuntime && typeof window.pluginRuntime.onPluginEnter === 'function') {
-  window.pluginRuntime.onPluginEnter(({code, type, payload}) => {
+  window.pluginRuntime.onPluginEnter((action) => {
+    const { code, type, payload } = action
     console.log('用户进入插件应用', code, type, payload)
-    if (type === "over") {
-      store.commit('settstext', payload)
+
+    const enterText = window.pluginRuntime.getEnterText(action)
+    if (enterText) {
+      store.commit('settstext', enterText)
     }
   })
 }

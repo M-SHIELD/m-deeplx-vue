@@ -27,6 +27,7 @@ type PluginRuntimeBridge = {
   screenCapture: (callback: (image: string, bounds?: any) => void) => any
   onPluginEnter: (callback: (payload: PluginEnterPayload) => void) => any
   onPluginReady: (callback: (payload: PluginEnterPayload) => void) => any
+  getEnterText: (payload: PluginEnterPayload) => string
 }
 
 declare global {

@@ -45,8 +45,8 @@
 **结果**: 将翻译结果写入 `translatedText` 和 `result`，必要时同步原文到输入框。
 
 ### 插件入口文本接管
-**条件**: uTools 或 ZTools 通过 `over` 模式带入选中文本。  
-**行为**: 在 `window.pluginRuntime.onPluginEnter()` 回调中把 `payload` 写入 `store.state.tstext`。  
+**条件**: uTools 通过 `over` 模式带入选中文本，或 ZTools 通过全局快捷键上下文传入 `pastedText`。  
+**行为**: 在 `window.pluginRuntime.onPluginEnter()` 回调中调用 `getEnterText()` 提取文本，再写入 `store.state.tstext`。  
 **结果**: 用户从外部选中文本进入插件时可直接看到待翻译内容。
 
 ### 截图结果读取
